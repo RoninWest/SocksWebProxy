@@ -21,7 +21,7 @@ namespace Tests
 				{
 					tp.Start(
 						behavior: TorProcess.StartBehavior.ReturnExisting,
-						windowStyle: System.Diagnostics.ProcessWindowStyle.Normal);
+						windowStyle: System.Diagnostics.ProcessWindowStyle.Minimized);
 					if (tp.InitWait(
 						retrySleep: TimeSpan.FromSeconds(3),
 						maxWait: TimeSpan.FromMinutes(2)))

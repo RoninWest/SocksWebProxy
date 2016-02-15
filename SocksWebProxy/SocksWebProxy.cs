@@ -33,7 +33,7 @@ namespace com.LandonKey.SocksWebProxy
             }
         }
 
-        ProxyConfig Config { get; set; }
+        public virtual ProxyConfig Config { get; protected set; }
 
         /// <summary>
         /// Creates a new SocksWebProxy

@@ -89,7 +89,7 @@ namespace com.LandonKey.SocksWebProxy
 		/// <summary>
 		/// Cleanup and delete existing process if any
 		/// </summary>
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			lock(_padlock)
 			{
@@ -127,7 +127,7 @@ namespace com.LandonKey.SocksWebProxy
 		/// <summary>
 		/// Return the list of existing tor processes (doesn't matter who started it)
 		/// </summary>
-		public IEnumerable<Process> GetExisting()
+		public virtual IEnumerable<Process> GetExisting()
 		{
 			Process[] processes = Process.GetProcesses();
 			if (processes != null && processes.Count() > 0)
@@ -149,7 +149,7 @@ namespace com.LandonKey.SocksWebProxy
 		/// <summary>
 		/// Return the current tor process started by this logic
 		/// </summary>
-		public Process CurrentProcess
+		public virtual Process CurrentProcess
 		{
 			get
 			{
@@ -182,12 +182,12 @@ namespace com.LandonKey.SocksWebProxy
 		/// <summary>
 		/// Attempts to kill all existing processes
 		/// </summary>
-		public void KillExisting()
+		public virtual void KillExisting()
 		{
 			IEnumerable<Process> existings = GetExisting();
 			KillExisting(existings);
 		}
-		void KillExisting(IEnumerable<Process> processes)
+		protected virtual void KillExisting(IEnumerable<Process> processes)
 		{
 			if (processes != null && processes.Count() > 0)
 			{
@@ -216,7 +216,7 @@ namespace com.LandonKey.SocksWebProxy
 		/// <param name="behavior"><see cref="StartBehavior"/></param>
 		/// <param name="windowStyle"><see cref="ProcessWindowStyle"/></param>
 		/// <returns><see cref="CurrentProcess"/> handle if able to start</returns>
-		public Process Start(
+		public virtual Process Start(
 			StartBehavior behavior = StartBehavior.ReturnExisting, 
 			ProcessWindowStyle windowStyle = ProcessWindowStyle.Hidden)
 		{
@@ -265,11 +265,29 @@ namespace com.LandonKey.SocksWebProxy
 			}
 		}
 
+		SocksWebProxy _proxy;
+		/// <summary>
+		/// Client socks proxy
+		/// </summary>
+		public virtual SocksWebProxy ClientProxy
+		{
+			get
+			{
+				lock(_padlock)
+				{
+					if (_proxy == null)
+						_proxy = new SocksWebProxy();
+
+					return _proxy;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Attempts to wait until tor process is operational using default parameters
 		/// </summary>
 		/// <returns>True if tor started or false if it did not</returns>
-		public bool InitWait()
+		public virtual bool InitWait()
 		{
 			return InitWait(
 				TimeSpan.FromSeconds(5), //default retries every 5s
@@ -281,7 +299,7 @@ namespace com.LandonKey.SocksWebProxy
 		/// <param name="retrySleep">How long to wait between attempts</param>
 		/// <param name="maxWait">How long to wait in total</param>
 		/// <returns>True if tor started or false if it did not</returns>
-		public bool InitWait(TimeSpan retrySleep, TimeSpan maxWait)
+		public virtual bool InitWait(TimeSpan retrySleep, TimeSpan maxWait)
 		{
 			if (retrySleep <= TimeSpan.Zero)
 				retrySleep = TimeSpan.FromMilliseconds(100);
@@ -291,7 +309,7 @@ namespace com.LandonKey.SocksWebProxy
 			bool ok = false;
 			using (var client = new WebClient())
 			{
-				client.Proxy = new SocksWebProxy();
+				client.Proxy = ClientProxy;
 				const string url = "https://check.torproject.org/";
 				string html = null;
 				int count = 0;
