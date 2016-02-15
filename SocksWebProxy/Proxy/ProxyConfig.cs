@@ -10,17 +10,11 @@ using System.Configuration;
 
 namespace com.LandonKey.SocksWebProxy.Proxy
 {
-    public class ProxyConfig : ConfigurationSection
-    {
+    public class ProxyConfig : ConfigurationSection, IProxyConfig
+	{
 		//lazy singleton
 		private class Inner { internal static readonly ProxyConfig SINGLETON = ConfigurationManager.GetSection("SocksWebProxy") as ProxyConfig; }
 		public static ProxyConfig Settings { get { return Inner.SINGLETON; } }
-
-		public enum SocksVersion
-        {			
-            Four,
-            Five,
-		}
 
 		const int DEFAULT_HTTP_PORT = 12345;
 		[ConfigurationProperty("HttpPort", DefaultValue = DEFAULT_HTTP_PORT)]

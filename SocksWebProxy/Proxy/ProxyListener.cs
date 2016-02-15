@@ -13,7 +13,7 @@ namespace com.LandonKey.SocksWebProxy.Proxy
     public sealed class ProxyListener : Org.Mentalis.Proxy.Http.HttpListener
     {
         public new int Port { get; private set; }
-        public ProxyConfig.SocksVersion Version { get; private set; }
+        public SocksVersion Version { get; private set; }
         private ProxyConfig Config { get; set; }
         public ProxyListener(ProxyConfig config)
             : base(config.HttpIPAddress, config.HttpPort)
