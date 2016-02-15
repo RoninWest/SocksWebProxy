@@ -46,6 +46,7 @@
     <Compile Include="Proxy\ProxyConfig.cs" />
     <Compile Include="Proxy\ProxyListener.cs" />
     <Compile Include="SocksWebProxy.cs" />
+    <Compile Include="TorProcess.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Org.Mentalis\Org.Mentalis.csproj">

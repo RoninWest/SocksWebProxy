@@ -13,67 +13,63 @@ namespace Tests
 {
     class Program
     {
-        static void Main(string[] args)
+		static void Main(string[] args)
         {
+			try
+			{
+				using (var tp = new TorProcess())
+				{
+					tp.Start(
+						behavior: TorProcess.StartBehavior.ReturnExisting,
+						windowStyle: System.Diagnostics.ProcessWindowStyle.Normal);
+					if (tp.InitWait(
+						retrySleep: TimeSpan.FromSeconds(3),
+						maxWait: TimeSpan.FromMinutes(2)))
+					{
+						string html = null;
+						const string url = "https://check.torproject.org/";
+						using (var client = new WebClient())
+						{
+							client.Proxy = new SocksWebProxy();
+							html = client.DownloadString(url);
+						}
+						var doc = new HtmlAgilityPack.HtmlDocument();
+						doc.LoadHtml(html);
+						var nodes = doc.DocumentNode.SelectNodes("//p/strong");
+						IPAddress ip;
+						foreach (var node in nodes)
+						{
+							if (IPAddress.TryParse(node.InnerText, out ip))
+							{
+								Console.WriteLine(":::::::::::::::::::::");
+								if (html.Contains("Congratulations. This browser is configured to use Tor."))
+									Console.WriteLine("Connected through Tor with IP: " + ip.ToString());
+								else
+									Console.Write("Not connected through Tor with IP: " + ip.ToString());
+								Console.WriteLine(":::::::::::::::::::::");
+								return;
+							}
+						}
+						Console.WriteLine(":::::::::::::::::::::");
+						Console.Write("IP not found");
+						Console.WriteLine(":::::::::::::::::::::");
+					}
+					else
+						Console.WriteLine("Can not confirm if tor is running");
+				}
+			}
+			catch(Exception ex)
+			{
+				Console.Error.WriteLine(ex.Message);
+			}
+			finally
+			{
 #if DEBUG
-			int runs = 10;
-#else
-			int runs = 3;
+				Console.WriteLine("Press enter to continue...");
+				Console.ReadLine();				
 #endif
-			RunParallel(runs, "https://check.torproject.org/");
-#if DEBUG
-			// wait until the user presses enter
-			Console.WriteLine("");
-            Console.WriteLine("Press enter to continue...");
-            Console.ReadLine();
-#endif
+			}
 		}
 
-		static readonly object _locker = new object();
-
-		private static void RunParallel(int count, string url)
-        {
-			var proxy = new SocksWebProxy();
-			Enumerable.Range(0, count).ToList().ForEach(new Action<int>(x =>
-            {
-                if (x != 0) Thread.Sleep(5000);
-                WebClient client = new WebClient();
-                client.Proxy = proxy;
-                var doc = new HtmlAgilityPack.HtmlDocument();
-                var html = client.DownloadString(url);
-                doc.LoadHtml(html);
-                var nodes = doc.DocumentNode.SelectNodes("//p/strong");
-                IPAddress ip;
-                foreach(var node in nodes)
-                {
-                    if(IPAddress.TryParse(node.InnerText, out ip))
-                    {
-
-                        lock (_locker)
-                        {
-                            Console.WriteLine(x + ":::::::::::::::::::::");
-                            Console.WriteLine("");
-                            if (html.Contains("Congratulations. This browser is configured to use Tor."))
-                                Console.WriteLine("Connected through Tor with IP: " + ip.ToString());
-                            else
-                                Console.Write("Not connected through Tor with IP: " + ip.ToString());
-                            Console.WriteLine("");
-                            Console.WriteLine(x + ":::::::::::::::::::::");
-                        }
-                        return;
-                    }
-                }
-
-                lock (_locker)
-                {
-                    Console.WriteLine(x + ":::::::::::::::::::::");
-                    Console.WriteLine("");
-                    Console.Write("IP not found");
-                    Console.WriteLine("");
-                    Console.WriteLine(x + ":::::::::::::::::::::");
-                }
-                
-            }));
-        }
     }
 }

@@ -137,6 +137,16 @@ namespace com.LandonKey.SocksWebProxy.Proxy
             }
         }
 
+		[ConfigurationProperty("TorPath")]
+		public virtual string TorPath
+		{
+			get { return this["TorPath"] as string; }
+			set
+			{
+				this["TorPath"] = value;
+			}
+		}
+
         public ProxyConfig()
         {
 			HttpPort = DEFAULT_HTTP_PORT;
